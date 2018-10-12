@@ -44,6 +44,9 @@ func (w *ListView) Layout(g *gocui.Gui) error {
 		if err := g.SetKeybinding("ListView", gocui.MouseLeft, gocui.ModNone, setCurrentView); err != nil {
 			return err
 		}
+		if err := g.SetKeybinding("ListView", gocui.KeyEnter, gocui.ModNone, w.ShowRecord); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -81,6 +84,50 @@ func (w *ListView) Render(soql string) error {
 			}
 		}
 	}
+	return nil
+}
+
+func (w *ListView) ShowRecord(g *gocui.Gui, v *gocui.View) error {
+	v, err := g.SetView("Record", 0, 0, 20, 20)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Record Detail"
+		v.Highlight = true
+		v.SelBgColor = gocui.ColorGreen
+		v.SelFgColor = gocui.ColorBlack
+		v.SetCursor(0, 1)
+		_, cy := v.Cursor()
+		r := w.Records[cy]
+		fmt.Fprintln(v, fmt.Sprintf("Id | %s", r.Id))
+		for key, value := range r.Fields {
+			fmt.Fprintln(v, fmt.Sprintf("%s | %s", key, value))
+		}
+
+		if err := g.SetKeybinding("Record", gocui.KeyArrowUp, gocui.ModNone, up(0)); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding("Record", 'k', gocui.ModNone, up(0)); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding("Record", gocui.KeyArrowDown, gocui.ModNone, down(len(r.Fields))); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding("Record", 'j', gocui.ModNone, down(len(r.Fields))); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding("Record", 'q', gocui.ModNone, quit); err != nil {
+			return err
+		}
+		g.SetCurrentView("Record")
+	}
+	return nil
+}
+
+func destroyRecordView(g *gocui.Gui, v *gocui.View) error {
+	g.DeleteView("Record")
+	g.SetCurrentView("ListView")
 	return nil
 }
 

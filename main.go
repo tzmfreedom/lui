@@ -114,5 +114,8 @@ func setCurrentViewForEditor(g *gocui.Gui, v *gocui.View) error {
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
+	if v.Name() == "Record" {
+		return destroyRecordView(g, v)
+	}
 	return gocui.ErrQuit
 }
