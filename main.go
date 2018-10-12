@@ -8,6 +8,8 @@ import (
 	"github.com/tzmfreedom/gocui"
 )
 
+var client *soapforce.Client
+
 func main() {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -15,20 +17,16 @@ func main() {
 	}
 	defer g.Close()
 
-	client := soapforce.NewClient()
+	client = soapforce.NewClient()
 	username := os.Getenv("SALESFORCE_USERNAME")
 	password := os.Getenv("SALESFORCE_PASSWORD")
 	result, err := client.Login(username, password)
-	qr, err := client.Query("SELECT Id, LastName, FirstName FROM Contact")
-	if err != nil {
-		panic(err)
-	}
 
 	maxX, maxY := g.Size()
 	m := newMenu(0, 0, 25, 7)
 	uinfo := newUserInfo(maxX/2, 0, maxX/2-1, maxY/2-1, result.UserInfo)
-	lv := newListView(0, maxY/2, maxX-1, maxY/2-1, qr.Records)
-	soql := newSoqlEditor(26, 0, maxX/2-26-1, 7)
+	lv := newListView(0, maxY/2, maxX-1, maxY/2-1)
+	soql := newSoqlEditor(26, 0, maxX/2-26-1, 7, lv)
 	ea := newExecuteAnonymous(0, 8, maxX/2-1, maxY/2-9)
 	// d := newDebugView(0, maxY-3, maxX-1, 2)
 
@@ -91,12 +89,11 @@ func setCurrentViewForEditor(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	g.Cursor = true
-	cx, cy := v.Cursor()
 	lines := v.ViewBufferLines()
+	cx, cy := v.Cursor()
 	if len(lines) > cy {
 		line := lines[cy]
 		if len(line) > cx {
-			fmt.Fprintf(v, string(line[cy]))
 			return nil
 		}
 		return v.SetCursor(len(line), cy)

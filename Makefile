@@ -13,6 +13,10 @@ DIST_WINDOWS_DIRS := find * -type d -name "window*" -exec
 test:
 	@go test -v ./...
 
+.PHONY: run
+run: format
+	@go run ./...
+
 .PHONY: install
 install: bin/$(NAME)
 	mv bin/$(NAME) /usr/local/bin/$(NAME)
@@ -53,13 +57,9 @@ endif
 deps:
 	dep ensure
 
-.PHONY: build/dev
-build/dev:
-	go build -o bin/$(NAME)
-
 .PHONY: bin/$(NAME) 
 bin/$(NAME): $(SRCS)
-	go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o bin/$(NAME)
+	go build -o bin/$(NAME)
 
 .PHONY: dist
 dist:
