@@ -129,7 +129,7 @@ func expandSOQL(soql string) (string, error) {
 		fields[i] = f.Name
 	}
 	f := strings.Join(fields, ", ")
-	return strings.Replace(soql, "*", f, 0), nil
+	return strings.Replace(soql, "*", f, -1), nil
 }
 
 func getSobjectFromSoql(soql string) (string, error) {
