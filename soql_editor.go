@@ -38,6 +38,7 @@ func (w *SoqlEditor) Layout(g *gocui.Gui) error {
 		if err := g.SetKeybinding("SoqlEditor", gocui.KeyCtrlV, gocui.ModNone, copySOQL); err != nil {
 			return err
 		}
+		g.SetCurrentView("SoqlEditor")
 	}
 	return nil
 }
@@ -58,6 +59,7 @@ func execSOQL(l *ListView) func(g *gocui.Gui, v *gocui.View) error {
 		if err != nil {
 			return err
 		}
+		g.SetCurrentView("ListView")
 		return l.Render(soql)
 	}
 }

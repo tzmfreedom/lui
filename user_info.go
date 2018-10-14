@@ -22,7 +22,6 @@ func (w *UserInfo) Layout(g *gocui.Gui) error {
 			{"ID", w.Info.UserId},
 			{"Name", w.Info.UserName},
 			{"FullName", w.Info.UserFullName},
-			{"Email", w.Info.UserEmail},
 			{"OrgID", w.Info.OrganizationId},
 			{"OrgName", w.Info.OrganizationName},
 		}

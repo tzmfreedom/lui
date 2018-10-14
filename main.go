@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/tzmfreedom/go-soapforce"
@@ -33,18 +32,17 @@ func main() {
 	descGlobalResults = descResult.Sobjects
 
 	maxX, maxY := g.Size()
-	m := newMenu(0, 0, 25, 7)
-	uinfo := newUserInfo(maxX/2, 0, maxX/2-1, maxY/2-1, result.UserInfo)
-	rv := &RecordView{maxX / 2, 0, maxX/2 - 1, maxY - 1}
-	lv := newListView(0, maxY/2, maxX-1, maxY/2-1, rv)
-	soql := newSoqlEditor(26, 0, maxX/2-26-1, 7, lv)
+	// m := newMenu(0, 0, 25, 7)
+	uinfo := newUserInfo(maxX/2, 0, maxX/2-1, 7, result.UserInfo)
+	dv := newDescribeView(maxX/2, 8, maxX/2-1, maxY/2-9, descGlobalResults, maxX/2+40, 0, maxX/2-41, maxY/2-1)
+	lv := newListView(0, maxY/2, maxX-1, maxY/2-1, maxX/2, 0, maxX/2-1, maxY-1)
+	soql := newSoqlEditor(0, 0, maxX/2-1, 7, lv)
 	ea := newExecuteAnonymous(0, 8, maxX/2-1, maxY/2-9)
-	// d := newDebugView(0, maxY-3, maxX-1, 2)
 
 	g.Mouse = true
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
-	g.SetManager(m, uinfo, ea, soql, lv)
+	g.SetManager(uinfo, dv, ea, soql, lv)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		panic(err)
@@ -76,13 +74,17 @@ func main() {
 func up(minY int) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if v != nil {
-			_, cy := v.Cursor()
-			fmt.Fprintf(v, string(cy))
-			if cy > minY {
-				err := v.SetCursor(0, cy-1)
-				if err != nil {
-					return err
+			cx, cy := v.Cursor()
+			ox, oy := v.Origin()
+			if (cy + oy) > minY {
+				if err := v.SetCursor(cx, cy-1); err != nil {
+					if err := v.SetOrigin(ox, oy-1); err != nil {
+						return err
+					}
 				}
+			} else if (cy+oy) == 2 && oy != 0 {
+				v.SetCursor(cx, cy+1)
+				v.SetOrigin(ox, oy-1)
 			}
 		}
 		return nil
@@ -92,16 +94,24 @@ func up(minY int) func(g *gocui.Gui, v *gocui.View) error {
 func down(maxY int) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if v != nil {
-			_, cy := v.Cursor()
-			if cy < maxY {
-				err := v.SetCursor(0, cy+1)
-				if err != nil {
+			cx, cy := v.Cursor()
+			ox, oy := v.Origin()
+			if err := v.SetCursor(cx, cy+1); err != nil && (oy+cy) < maxY {
+				if err := v.SetOrigin(ox, oy+1); err != nil {
 					return err
 				}
 			}
 		}
 		return nil
 	}
+}
+
+func toTop(g *gocui.Gui, v *gocui.View) error {
+	return nil
+}
+
+func toBottom(g *gocui.Gui, v *gocui.View) error {
+	return nil
 }
 
 func setCurrentView(g *gocui.Gui, v *gocui.View) error {
@@ -142,9 +152,9 @@ func setCurrentViewForEditor(g *gocui.Gui, v *gocui.View) error {
 }
 
 var menuOrder = []string{
-	"Menu",
 	"SoqlEditor",
 	"ExecuteAnonymous",
+	"Describe",
 	"ListView",
 }
 

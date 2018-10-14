@@ -7,22 +7,16 @@ import (
 
 	"strings"
 
-	"github.com/mattn/go-runewidth"
 	"github.com/tzmfreedom/go-soapforce"
 	"github.com/tzmfreedom/gocui"
 )
 
 type ListView struct {
-	x, y, w, h  int
-	View        *gocui.View
-	Records     []*soapforce.SObject
-	SObjectType string
-
-	RecordView *RecordView
-}
-
-type RecordView struct {
-	x, y, w, h int
+	x, y, w, h     int
+	rx, ry, rw, rh int
+	View           *gocui.View
+	Records        []*soapforce.SObject
+	SObjectType    string
 }
 
 var colWidth = 20
@@ -38,19 +32,19 @@ func (w *ListView) Layout(g *gocui.Gui) error {
 		v.Highlight = true
 		v.SelBgColor = gocui.ColorGreen
 		v.SelFgColor = gocui.ColorBlack
-		v.SetCursor(0, 1)
+		v.SetCursor(0, 2)
 		w.Render("")
 
-		if err := g.SetKeybinding("ListView", gocui.KeyArrowUp, gocui.ModNone, up(1)); err != nil {
+		if err := g.SetKeybinding("ListView", gocui.KeyArrowUp, gocui.ModNone, up(2)); err != nil {
 			return err
 		}
-		if err := g.SetKeybinding("ListView", 'k', gocui.ModNone, up(1)); err != nil {
+		if err := g.SetKeybinding("ListView", 'k', gocui.ModNone, up(2)); err != nil {
 			return err
 		}
-		if err := g.SetKeybinding("ListView", gocui.KeyArrowDown, gocui.ModNone, down(w.h-4)); err != nil {
+		if err := g.SetKeybinding("ListView", gocui.KeyArrowDown, gocui.ModNone, w.downDynamically); err != nil {
 			return err
 		}
-		if err := g.SetKeybinding("ListView", 'j', gocui.ModNone, down(w.h-2)); err != nil {
+		if err := g.SetKeybinding("ListView", 'j', gocui.ModNone, w.downDynamically); err != nil {
 			return err
 		}
 		if err := g.SetKeybinding("ListView", gocui.MouseLeft, gocui.ModNone, setCurrentView); err != nil {
@@ -79,26 +73,29 @@ func (w *ListView) Render(soql string) error {
 		return err
 	}
 
-	headers := []string{
-		"Id",
-		"LastName",
-		"FirstName",
+	headers, err := getFields(soql)
+	if err != nil {
+		return err
 	}
 	displayHeaders := make([]string, len(headers))
 	for i, h := range headers {
 		displayHeaders[i] = display(h, colWidth)
 	}
 	fmt.Fprintln(w.View, strings.Join(displayHeaders, "|"))
+	fmt.Fprintln(w.View, strings.Repeat("─", w.w-2))
 
 	r, err := client.Query(soql)
 	if err != nil {
 		return err
 	}
 	w.Records = r.Records
-	w.SObjectType = "Contact"
+	w.SObjectType, err = getSobjectFromSoql(soql)
+	if err != nil {
+		return err
+	}
 
 	if w.Records != nil {
-		for i, r := range w.Records {
+		for _, r := range w.Records {
 			values := make([]string, len(headers))
 			for i, h := range headers {
 				if h == "Id" {
@@ -113,9 +110,6 @@ func (w *ListView) Render(soql string) error {
 				}
 			}
 			fmt.Fprintln(w.View, strings.Join(values, "|"))
-			if i >= w.h-3 {
-				break
-			}
 		}
 	}
 	return nil
@@ -139,6 +133,20 @@ func (w *ListView) OpenRecordEdit(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	return openBrowser(url)
+}
+
+func (w *ListView) downDynamically(g *gocui.Gui, v *gocui.View) error {
+	maxY := len(w.Records)
+	if v != nil {
+		cx, cy := v.Cursor()
+		ox, oy := v.Origin()
+		if err := v.SetCursor(cx, cy+1); err != nil && (oy+cy) < maxY {
+			if err := v.SetOrigin(ox, oy+1); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func getRecordDetailUrl(sobjectType string, r *soapforce.SObject) (string, error) {
@@ -188,118 +196,11 @@ func openBrowser(url string) error {
 }
 
 func (w *ListView) ShowRecord(g *gocui.Gui, v *gocui.View) error {
-	recordView, err := g.SetView("Record", w.RecordView.x, w.RecordView.y, w.RecordView.x+w.RecordView.w, w.RecordView.y+w.RecordView.h)
-	if err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		recordView.Title = "Record Detail"
-		recordView.Highlight = true
-		recordView.SelBgColor = gocui.ColorGreen
-		recordView.SelFgColor = gocui.ColorBlack
-		recordView.SetCursor(0, 1)
-
-		_, cy := v.Cursor()
-		recordView.Clear()
-		r, err := getRecordDetail(w.SObjectType, w.Records[cy].Id)
-		if err != nil {
-			return err
-		}
-		sobj, err := getDescribeSObjectResult(w.SObjectType)
-		max := maxFieldLabelLength(sobj.Fields)
-
-		fmt.Fprintln(recordView, fmt.Sprintf("%s | %s", runewidth.FillRight("ID", max), r.Id))
-		if err != nil {
-			return err
-		}
-
-		for _, f := range sobj.Fields {
-			value, ok := r.Fields[f.Name]
-			if !ok {
-				value = ""
-			}
-			fmt.Fprintln(recordView, fmt.Sprintf("%s | %s", runewidth.FillRight(f.Label, max), value))
-		}
-
-		if err := g.SetKeybinding("Record", gocui.KeyArrowUp, gocui.ModNone, up(0)); err != nil {
-			return err
-		}
-		if err := g.SetKeybinding("Record", 'k', gocui.ModNone, up(0)); err != nil {
-			return err
-		}
-		if err := g.SetKeybinding("Record", gocui.KeyArrowDown, gocui.ModNone, down(len(sobj.Fields)-2)); err != nil {
-			return err
-		}
-		if err := g.SetKeybinding("Record", 'j', gocui.ModNone, down(len(sobj.Fields)-2)); err != nil {
-			return err
-		}
-		if err := g.SetKeybinding("Record", gocui.MouseLeft, gocui.ModNone, setCurrentView); err != nil {
-			return err
-		}
-		if err := g.SetKeybinding("Record", 'q', gocui.ModNone, backToList); err != nil {
-			return err
-		}
-		g.SetCurrentView("Record")
-	}
-	return nil
+	_, cy := v.Cursor()
+	rv := newRecordView(w.rx, w.ry, w.rw, w.rh, w.SObjectType, w.Records[cy])
+	return rv.Render(g)
 }
 
-func getRecordDetail(sobjectType, id string) (*soapforce.SObject, error) {
-	sobj, err := getDescribeSObjectResult(sobjectType)
-	if err != nil {
-		return nil, err
-	}
-	fields := make([]string, len(sobj.Fields))
-	for i, f := range sobj.Fields {
-		fields[i] = f.Name
-	}
-	result, err := client.Query(fmt.Sprintf("SELECT %s FROM %s WHERE id = '%s'", strings.Join(fields, ", "), sobjectType, id))
-	if err != nil {
-		return nil, err
-	}
-	return result.Records[0], nil
-}
-
-func maxFieldLabelLength(results []*soapforce.Field) int {
-	max := 0
-	for _, result := range results {
-		l := runewidth.StringWidth(result.Label)
-		if l > max {
-			max = l
-		}
-	}
-	return max
-}
-
-func display(label string, max int) string {
-	l := max - runewidth.StringWidth(label)
-	if l > 0 {
-		return runewidth.FillRight(label, max)
-	}
-	return runewidth.Truncate(label, max, "...")
-}
-
-func backToList(g *gocui.Gui, v *gocui.View) error {
-	g.DeleteKeybindings("Record")
-	g.DeleteView("Record")
-	g.SetCurrentView("ListView")
-	return nil
-}
-
-func expandSOQL(soql string) (string, error) {
-	sobject := "Contact"
-	res, err := client.DescribeSObject(sobject)
-	if err != nil {
-		return "", err
-	}
-	fields := make([]string, len(res.Fields))
-	for i, f := range res.Fields {
-		fields[i] = f.Name
-	}
-	f := strings.Join(fields, ", ")
-	return strings.Replace(soql, "*", f, 0), nil
-}
-
-func newListView(x, y, w, h int, rv *RecordView) *ListView {
-	return &ListView{x, y, w, h, nil, nil, "", rv}
+func newListView(x, y, w, h, rx, ry, rw, rh int) *ListView {
+	return &ListView{x, y, w, h, rx, ry, rw, rh, nil, nil, ""}
 }
