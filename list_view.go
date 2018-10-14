@@ -25,6 +25,8 @@ type RecordView struct {
 	x, y, w, h int
 }
 
+var colWidth = 20
+
 func (w *ListView) Layout(g *gocui.Gui) error {
 	v, err := g.SetView("ListView", w.x, w.y, w.x+w.w, w.y+w.h)
 	if err != nil {
@@ -78,11 +80,15 @@ func (w *ListView) Render(soql string) error {
 	}
 
 	headers := []string{
+		"Id",
 		"LastName",
+		"FirstName",
 	}
-	for _, h := range headers {
-		fmt.Fprintln(w.View, h)
+	displayHeaders := make([]string, len(headers))
+	for i, h := range headers {
+		displayHeaders[i] = display(h, colWidth)
 	}
+	fmt.Fprintln(w.View, strings.Join(displayHeaders, "|"))
 
 	r, err := client.Query(soql)
 	if err != nil {
@@ -93,10 +99,21 @@ func (w *ListView) Render(soql string) error {
 
 	if w.Records != nil {
 		for i, r := range w.Records {
-			for _, h := range headers {
-				fmt.Fprintln(w.View, r.Fields[h])
+			values := make([]string, len(headers))
+			for i, h := range headers {
+				if h == "Id" {
+					values[i] = display(r.Id, colWidth)
+				} else {
+					value := r.Fields[h]
+					if value != nil {
+						values[i] = display(value.(string), colWidth)
+					} else {
+						values[i] = display("", colWidth)
+					}
+				}
 			}
-			if i >= w.h-4 {
+			fmt.Fprintln(w.View, strings.Join(values, "|"))
+			if i >= w.h-3 {
 				break
 			}
 		}
@@ -191,7 +208,7 @@ func (w *ListView) ShowRecord(g *gocui.Gui, v *gocui.View) error {
 		sobj, err := getDescribeSObjectResult(w.SObjectType)
 		max := maxFieldLabelLength(sobj.Fields)
 
-		fmt.Fprintln(recordView, fmt.Sprintf("%s | %s", paddingLabel("ID", max), r.Id))
+		fmt.Fprintln(recordView, fmt.Sprintf("%s | %s", runewidth.FillRight("ID", max), r.Id))
 		if err != nil {
 			return err
 		}
@@ -201,7 +218,7 @@ func (w *ListView) ShowRecord(g *gocui.Gui, v *gocui.View) error {
 			if !ok {
 				value = ""
 			}
-			fmt.Fprintln(recordView, fmt.Sprintf("%s | %s", paddingLabel(f.Label, max), value))
+			fmt.Fprintln(recordView, fmt.Sprintf("%s | %s", runewidth.FillRight(f.Label, max), value))
 		}
 
 		if err := g.SetKeybinding("Record", gocui.KeyArrowUp, gocui.ModNone, up(0)); err != nil {
@@ -254,13 +271,12 @@ func maxFieldLabelLength(results []*soapforce.Field) int {
 	return max
 }
 
-func paddingLabel(label string, max int) string {
+func display(label string, max int) string {
 	l := max - runewidth.StringWidth(label)
-	for l > 0 {
-		label += " "
-		l--
+	if l > 0 {
+		return runewidth.FillRight(label, max)
 	}
-	return label
+	return runewidth.Truncate(label, max, "...")
 }
 
 func backToList(g *gocui.Gui, v *gocui.View) error {
