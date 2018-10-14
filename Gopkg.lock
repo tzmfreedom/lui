@@ -19,11 +19,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fb324c9a1b4586de4c309d033ac3be239d6bf9efb74d7662a8563afdbe721298"
+  digest = "1:f818271e834793996c3b480e6b0a062caecd9be34826dc92f7d400d1c19f40a3"
   name = "github.com/tzmfreedom/go-soapforce"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c043d1e5582f9ffc2e00e178f1f379d6abec28d8"
+  revision = "70ca6559f1ac88cdbaaf62b786079277e982e03d"
 
 [[projects]]
   branch = "fix_unicode_width"

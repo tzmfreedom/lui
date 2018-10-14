@@ -1,31 +1,17 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
-	"github.com/tzmfreedom/gocui"
+	"github.com/k0kubun/pp"
 )
 
-type DebugView struct {
-	x, y, w, h int
-}
-
-func (w *DebugView) Layout(g *gocui.Gui) error {
-	if _, err := g.SetView("Debug", w.x, w.y, w.x+w.w, w.y+w.h); err != gocui.ErrUnknownView {
-		return err
-	}
-	return nil
-}
-
-func newDebugView(x, y, w, h int) *DebugView {
-	return &DebugView{x, y, w, h}
-}
-
-func debug(g *gocui.Gui, text string) error {
-	v, err := g.SetCurrentView("Debug")
+func debug(obj interface{}) error {
+	f, err := os.Create("./debug")
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(v, text)
+	defer f.Close()
+	pp.Fprintln(f, obj)
 	return nil
 }

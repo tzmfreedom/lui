@@ -9,6 +9,8 @@ import (
 )
 
 var client *soapforce.Client
+var descGlobalResults []*soapforce.DescribeGlobalSObjectResult
+var descSObjectResults = map[string]*soapforce.DescribeSObjectResult{}
 
 func main() {
 	g, err := gocui.NewGui(gocui.OutputNormal)
@@ -21,22 +23,48 @@ func main() {
 	username := os.Getenv("SALESFORCE_USERNAME")
 	password := os.Getenv("SALESFORCE_PASSWORD")
 	result, err := client.Login(username, password)
+	if err != nil {
+		panic(err)
+	}
+	descResult, err := client.DescribeGlobal()
+	if err != nil {
+		panic(err)
+	}
+	descGlobalResults = descResult.Sobjects
 
 	maxX, maxY := g.Size()
 	m := newMenu(0, 0, 25, 7)
 	uinfo := newUserInfo(maxX/2, 0, maxX/2-1, maxY/2-1, result.UserInfo)
-	lv := newListView(0, maxY/2, maxX-1, maxY/2-1)
+	rv := &RecordView{maxX / 2, 0, maxX/2 - 1, maxY - 1}
+	lv := newListView(0, maxY/2, maxX-1, maxY/2-1, rv)
 	soql := newSoqlEditor(26, 0, maxX/2-26-1, 7, lv)
 	ea := newExecuteAnonymous(0, 8, maxX/2-1, maxY/2-9)
 	// d := newDebugView(0, maxY-3, maxX-1, 2)
 
 	g.Mouse = true
+	g.Highlight = true
+	g.SelFgColor = gocui.ColorGreen
 	g.SetManager(m, uinfo, ea, soql, lv)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		panic(err)
 	}
-	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlQ, gocui.ModNone, quit); err != nil {
+		panic(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, moveToNext); err != nil {
+		panic(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModAlt, moveTo("SoqlEditor")); err != nil {
+		panic(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlE, gocui.ModAlt, moveTo("ExecuteAnonymous")); err != nil {
+		panic(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlL, gocui.ModAlt, moveTo("ListView")); err != nil {
+		panic(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlM, gocui.ModAlt, moveTo("Menu")); err != nil {
 		panic(err)
 	}
 
@@ -113,9 +141,37 @@ func setCurrentViewForEditor(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func quit(g *gocui.Gui, v *gocui.View) error {
-	if v.Name() == "Record" {
-		return destroyRecordView(g, v)
+var menuOrder = []string{
+	"Menu",
+	"SoqlEditor",
+	"ExecuteAnonymous",
+	"ListView",
+}
+
+func moveToNext(g *gocui.Gui, v *gocui.View) error {
+	current := g.CurrentView().Name()
+	for i, menu := range menuOrder {
+		if menu == current {
+			var next string
+			if i+1 == len(menuOrder) {
+				next = menuOrder[0]
+			} else {
+				next = menuOrder[i+1]
+			}
+			g.SetCurrentView(next)
+			return nil
+		}
 	}
+	return nil
+}
+
+func moveTo(name string) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		g.SetCurrentView(name)
+		return nil
+	}
+}
+
+func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
