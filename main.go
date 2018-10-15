@@ -13,8 +13,14 @@ var descGlobalResults []*soapforce.DescribeGlobalSObjectResult
 var descSObjectResults = map[string]*soapforce.DescribeSObjectResult{}
 
 func main() {
-	username := prompter.Prompt("Enter your user name", os.Getenv("SALESFORCE_USERNAME"))
-	password := prompter.Password("Enter your password")
+	username := os.Getenv("SALESFORCE_USERNAME")
+	if username == "" {
+		username = prompter.Prompt("Enter your user name", "")
+	}
+	password := os.Getenv("SALESFORCE_PASSWORD")
+	if password == "" {
+		password = prompter.Password("Enter your password")
+	}
 	client = soapforce.NewClient()
 	result, err := client.Login(username, password)
 	if err != nil {
@@ -44,7 +50,7 @@ func main() {
 	g.Mouse = true
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorGreen
-	g.SetManager(uinfo, dv, ea, soql, lv)
+	g.SetManager(soql, uinfo, ea, dv, lv)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		panic(err)
@@ -162,15 +168,17 @@ var menuOrder = []string{
 
 func moveToNext(g *gocui.Gui, v *gocui.View) error {
 	current := g.CurrentView().Name()
-	for i, menu := range menuOrder {
-		if menu == current {
-			var next string
-			if i+1 == len(menuOrder) {
-				next = menuOrder[0]
+	views := g.Views()
+	for i, view := range views {
+		if view.Name() == current {
+			var next *gocui.View
+			if i+1 == len(views) {
+				next = views[0]
 			} else {
-				next = menuOrder[i+1]
+				next = views[i+1]
 			}
-			g.SetCurrentView(next)
+
+			g.SetCurrentView(next.Name())
 			return nil
 		}
 	}

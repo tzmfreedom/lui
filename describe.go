@@ -11,6 +11,7 @@ import (
 type DescribeView struct {
 	x, y, w, h int
 	SObjects   []*soapforce.DescribeGlobalSObjectResult
+	View       *gocui.View
 
 	dx, dy, dw, dh int
 }
@@ -28,6 +29,7 @@ func (w *DescribeView) Layout(g *gocui.Gui) error {
 		v.SelBgColor = gocui.ColorGreen
 		v.SelFgColor = gocui.ColorBlack
 		v.SetCursor(0, 0)
+		w.View = v
 
 		//headers := []string{
 		//	display("Label", describeColWidth),
@@ -67,6 +69,21 @@ func (w *DescribeView) Layout(g *gocui.Gui) error {
 		if err := g.SetKeybinding("Describe", gocui.KeyEnter, gocui.ModNone, w.showFields); err != nil {
 			return err
 		}
+		if err := g.SetKeybinding("Describe", gocui.KeyCtrlF, gocui.ModNone, w.showSearchBox); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (w *DescribeView) Render() error {
+	w.View.Clear()
+	for _, m := range w.SObjects {
+		vals := []string{
+			display(m.Label, describeColWidth),
+			display(m.Name, describeColWidth),
+		}
+		fmt.Fprintln(w.View, strings.Join(vals, "|"))
 	}
 	return nil
 }
@@ -81,6 +98,11 @@ func (w *DescribeView) showFields(g *gocui.Gui, v *gocui.View) error {
 	return field.Render(g)
 }
 
+func (w *DescribeView) showSearchBox(g *gocui.Gui, v *gocui.View) error {
+	searchBox := newSearchBox(w.x+20, w.y-2, w.w-20, 2, w)
+	return searchBox.Render(g)
+}
+
 func newDescribeView(x, y, w, h int, sobjects []*soapforce.DescribeGlobalSObjectResult, dx, dy, dw, dh int) *DescribeView {
-	return &DescribeView{x, y, w, h, sobjects, dx, dy, dw, dh}
+	return &DescribeView{x, y, w, h, sobjects, nil, dx, dy, dw, dh}
 }

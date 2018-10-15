@@ -70,6 +70,11 @@ func backToDescribe(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+func moveToDescribe(g *gocui.Gui, v *gocui.View) error {
+	g.SetCurrentView("Describe")
+	return nil
+}
+
 func newDescribeField(x, y, w, h int, fields []*soapforce.Field) *DescribeField {
 	return &DescribeField{x, y, w, h, fields}
 }

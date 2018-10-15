@@ -50,6 +50,14 @@
   revision = "b66b20ab708e289ff1eb3e218478302e6aec28ce"
 
 [[projects]]
+  digest = "1:56ce664abce576b1e6e3673303a5eef8ef57d3f261c2d658f6f0313ecb17ac1f"
+  name = "github.com/sahilm/fuzzy"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0ca8ec0fccc8cd7d336a6d6dec490a327a8d5cb0"
+  version = "v0.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:1131bb517d6b2702208181ce2fdd6bf307aa6184c643ea8e9e5cc4bed8dcdf09"
   name = "github.com/tzmfreedom/go-soapforce"
@@ -91,6 +99,7 @@
     "github.com/Songmu/prompter",
     "github.com/k0kubun/pp",
     "github.com/mattn/go-runewidth",
+    "github.com/sahilm/fuzzy",
     "github.com/tzmfreedom/go-soapforce",
     "github.com/tzmfreedom/gocui",
   ]
