@@ -33,7 +33,7 @@ func (w *ListView) Layout(g *gocui.Gui) error {
 		v.SelBgColor = gocui.ColorGreen
 		v.SelFgColor = gocui.ColorBlack
 		v.SetCursor(0, 2)
-		w.Render("")
+		w.Render("", g)
 
 		if err := g.SetKeybinding("ListView", gocui.KeyArrowUp, gocui.ModNone, up(2)); err != nil {
 			return err
@@ -63,8 +63,13 @@ func (w *ListView) Layout(g *gocui.Gui) error {
 	return nil
 }
 
-func (w *ListView) Render(soql string) error {
+func (w *ListView) Pending() error {
 	w.View.Clear()
+	fmt.Fprintln(w.View, "SOQL Executing...")
+	return nil
+}
+
+func (w *ListView) Render(soql string, g *gocui.Gui) error {
 	if soql == "" {
 		return nil
 	}
@@ -77,6 +82,11 @@ func (w *ListView) Render(soql string) error {
 	if err != nil {
 		return err
 	}
+	r, err := client.Query(soql)
+	if err != nil {
+		return err
+	}
+	w.View.Clear()
 	displayHeaders := make([]string, len(headers))
 	for i, h := range headers {
 		displayHeaders[i] = display(h, colWidth)
@@ -84,10 +94,6 @@ func (w *ListView) Render(soql string) error {
 	fmt.Fprintln(w.View, strings.Join(displayHeaders, "|"))
 	fmt.Fprintln(w.View, strings.Repeat("─", w.w-2))
 
-	r, err := client.Query(soql)
-	if err != nil {
-		return err
-	}
 	w.Records = r.Records
 	w.SObjectType, err = getSobjectFromSoql(soql)
 	if err != nil {
@@ -112,6 +118,7 @@ func (w *ListView) Render(soql string) error {
 			fmt.Fprintln(w.View, strings.Join(values, "|"))
 		}
 	}
+	g.Update(func(g *gocui.Gui) error { return nil })
 	return nil
 }
 

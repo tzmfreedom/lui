@@ -95,7 +95,7 @@ func (w *DescribeView) showFields(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	field := newDescribeField(w.dx, w.dy, w.dw, w.dh, sobj.Fields)
-	return field.Render(g)
+	return field.Layout(g)
 }
 
 func (w *DescribeView) showSearchBox(g *gocui.Gui, v *gocui.View) error {

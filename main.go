@@ -42,7 +42,7 @@ func main() {
 	maxX, maxY := g.Size()
 	// m := newMenu(0, 0, 25, 7)
 	uinfo := newUserInfo(maxX/2, 0, maxX/2-1, 7, result.UserInfo)
-	dv := newDescribeView(maxX/2, 8, maxX/2-1, maxY/2-9, descGlobalResults, maxX/2+40, 0, maxX/2-41, maxY/2-1)
+	dv := newDescribeView(maxX/2, 8, maxX/2-1, maxY/2-9, descGlobalResults, maxX/2, maxY/2, maxX/2-1, maxY/2-1)
 	lv := newListView(0, maxY/2, maxX-1, maxY/2-1, maxX/2, 0, maxX/2-1, maxY-1)
 	soql := newSoqlEditor(0, 0, maxX/2-1, 7, lv)
 	ea := newExecuteAnonymous(0, 8, maxX/2-1, maxY/2-9)

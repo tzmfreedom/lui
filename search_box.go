@@ -102,10 +102,6 @@ func (s *SearchBox) searchBox(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 	}
 }
 
-func noop(g *gocui.Gui, v *gocui.View) error {
-	return nil
-}
-
 func newSearchBox(x, y, w, h int, d *DescribeView) *SearchBox {
 	return &SearchBox{x, y, w, h, d}
 }

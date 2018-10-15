@@ -60,7 +60,9 @@ func execSOQL(l *ListView) func(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 		g.SetCurrentView("ListView")
-		return l.Render(soql)
+
+		go l.Render(soql, g)
+		return l.Pending()
 	}
 }
 
