@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:cf8e4e10e49fef1330e60c780258ea3c1471747f62e52e52c7e96307a1fea34b"
+  name = "github.com/Songmu/prompter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b5721e8d556682bcef33262731d98a39dee14dc4"
+  version = "0.1.0"
+
+[[projects]]
   digest = "1:16dd6b893b78a50564cdde1d9f7ea67224dece11bb0886bd882f1dc3dc1d440d"
   name = "github.com/k0kubun/pp"
   packages = ["."]
@@ -59,9 +67,20 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0a40b0bdd57a93e741d8557465be3a2edeec408e9b6399586ad65bbe8e355796"
+  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "UT"
+  revision = "a92615f3c49003920a58dedcf32cf55022cefb8d"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f5aa274a0377f85735edc7fedfb0811d3cbc20af91633797cb359e29c3272271"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "unix",
+    "windows",
+  ]
   pruneopts = "UT"
   revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
 
@@ -69,6 +88,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/Songmu/prompter",
     "github.com/k0kubun/pp",
     "github.com/mattn/go-runewidth",
     "github.com/tzmfreedom/go-soapforce",

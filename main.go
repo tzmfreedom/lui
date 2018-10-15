@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/Songmu/prompter"
 	"github.com/tzmfreedom/go-soapforce"
 	"github.com/tzmfreedom/gocui"
 )
@@ -12,19 +13,20 @@ var descGlobalResults []*soapforce.DescribeGlobalSObjectResult
 var descSObjectResults = map[string]*soapforce.DescribeSObjectResult{}
 
 func main() {
+	username := prompter.Prompt("Enter your user name", os.Getenv("SALESFORCE_USERNAME"))
+	password := prompter.Password("Enter your password")
+	client = soapforce.NewClient()
+	result, err := client.Login(username, password)
+	if err != nil {
+		panic(err)
+	}
+
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		panic(err)
 	}
 	defer g.Close()
 
-	client = soapforce.NewClient()
-	username := os.Getenv("SALESFORCE_USERNAME")
-	password := os.Getenv("SALESFORCE_PASSWORD")
-	result, err := client.Login(username, password)
-	if err != nil {
-		panic(err)
-	}
 	descResult, err := client.DescribeGlobal()
 	if err != nil {
 		panic(err)
