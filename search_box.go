@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 
 	"strings"
 
@@ -53,12 +54,11 @@ func (s *SearchBox) search(v *gocui.View) error {
 		return dv.Render()
 	}
 	names := make([]string, len(descGlobalResults))
-	for i, sobj := range descGlobalResults {
-		names[i] = sobj.Name
-	}
 	mapToSObject := map[string]*soapforce.DescribeGlobalSObjectResult{}
-	for _, sobj := range descGlobalResults {
-		mapToSObject[sobj.Name] = sobj
+	for i, sobj := range descGlobalResults {
+		target := fmt.Sprintf("%s %s", sobj.Label, sobj.Name)
+		names[i] = target
+		mapToSObject[target] = sobj
 	}
 	matches := fuzzy.Find(pattern, names)
 	newSObjects := make([]*soapforce.DescribeGlobalSObjectResult, len(matches))

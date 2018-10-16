@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/sahilm/fuzzy"
@@ -53,12 +54,11 @@ func (s *FieldSearchBox) search(v *gocui.View) error {
 		return nil
 	}
 	names := make([]string, len(df.Fields))
-	for i, sobj := range df.Fields {
-		names[i] = sobj.Name
-	}
 	mapToField := map[string]*soapforce.Field{}
-	for _, f := range df.Fields {
-		mapToField[f.Name] = f
+	for i, f := range df.Fields {
+		target := fmt.Sprintf("%s %s", f.Label, f.Name)
+		names[i] = target
+		mapToField[target] = f
 	}
 	matches := fuzzy.Find(pattern, names)
 	displayFields := make([]*soapforce.Field, len(matches))
