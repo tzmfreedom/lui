@@ -43,7 +43,7 @@ func main() {
 	// m := newMenu(0, 0, 25, 7)
 	uinfo := newUserInfo(maxX/2, 0, maxX/2-1, 7, result.UserInfo)
 	dv := newDescribeView(maxX/2, 8, maxX/2-1, maxY/2-9, descGlobalResults, maxX/2, maxY/2, maxX/2-1, maxY/2-1)
-	lv := newListView(0, maxY/2, maxX-1, maxY/2-1, maxX/2, 0, maxX/2-1, maxY-1)
+	lv := newListView(0, maxY/2, maxX-1, maxY/2, maxX/2, maxY/2, maxX/2-1, maxY/2)
 	soql := newSoqlEditor(0, 0, maxX/2-1, 7, lv)
 	ea := newExecuteAnonymous(0, 8, maxX/2-1, maxY/2-9)
 
@@ -163,22 +163,27 @@ var menuOrder = []string{
 	"SoqlEditor",
 	"ExecuteAnonymous",
 	"Describe",
+	"DescribeField",
 	"ListView",
+	"Record",
 }
 
 func moveToNext(g *gocui.Gui, v *gocui.View) error {
 	current := g.CurrentView().Name()
-	views := g.Views()
-	for i, view := range views {
-		if view.Name() == current {
-			var next *gocui.View
-			if i+1 == len(views) {
-				next = views[0]
-			} else {
-				next = views[i+1]
+	for i, name := range menuOrder {
+		if name == current {
+			for {
+				i++
+				if i == len(menuOrder) {
+					i = 0
+					break
+				}
+				nextMenu := menuOrder[i]
+				if _, err := g.View(nextMenu); err == nil {
+					break
+				}
 			}
-
-			g.SetCurrentView(next.Name())
+			g.SetCurrentView(menuOrder[i])
 			return nil
 		}
 	}
