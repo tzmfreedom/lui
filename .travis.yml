@@ -1,0 +1,21 @@
+language: go
+before_install:
+- curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+install:
+- dep ensure
+script:
+- make test
+before_deploy:
+- make cross-build
+- make dist
+deploy:
+  provider: releases
+  api_key:
+    secure: jereqoH3aFma0q7qlB7WEce7mplmG3xQIWbeGlXu/GlHr9najt9jSprKcuJX6x7ZgJe/lGPA6FpDvBzji/exlT0EtHjmgLQVWfAqkCKTXPWxPgjPzz3Kg8m5b4HEO33TJvg8JmQqNn1CDXjYyNJeCo/oqsuu3AAxd3tKQAcTZQ2EofZh74XpmZAlueGydxtu6CifS7PW83Bei5AO+yiLHqwZ/eKPI7jw0JBHUT5feCrx7vE7bQX7vUNty6qtLQhC8oAKreK+qdtTVktXNLnDihAnTnDQ60Nv929VN/Ikq6r8GG0Bug1Vk3riIcqJ2V2U8V0v58QMddOSpW5kpIhpSFaSXS9aHXJ9MruonsUu6czk0YxRy6XOao6QnDuNMq0f2qnRcgXceQaVO7q10ZQW0zt+GIRaxirZmfPxwmpmqqyFir8kt2t9Nkn99zo6pFE1yVXQrmgnSFe7XmRw63llc3GcIEcfvwLBp5Ze4hWBQnDX6ev7aZgUhJ/Mq7nCac5Zp3gEGWAo9wA950hSTXX9tzLtsX+sP8LnpruKvKxApOyZM6NVMHNGCIumjoMgHL2JL0fBYLncMsRBS9EUbLPvJ8wXvG6LHO4R5Zpjoamc5ojS3kP2GAs9iD9XLRlDA+jogN/fDaxLqRmCAickWk+21U7Ur+wFo5qRqsnWiLsKKjY=
+  skip_cleanup: true
+  overwrite: true
+  file_glob: true
+  file: dist/*.{tar.gz,zip}
+  on:
+    repo: tzmfreedom/lui
+    tags: true
