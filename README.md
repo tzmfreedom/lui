@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/tzmfreedom/lui.svg?branch=master)](https://travis-ci.org/tzmfreedom/lui)
 
-# fui
+# lui
 
 Lightning Platform TerminalUI Application
 
@@ -8,13 +8,13 @@ Lightning Platform TerminalUI Application
 
 For Golang User
 ```
-go get github.com/tzmfreedom/fui
+go get github.com/tzmfreedom/lui
 ```
 
 ## Usage
 
 ```
-$ fui
+$ lui
 ```
 
 ## Contribute
@@ -23,4 +23,4 @@ Just send pull request if needed or fill an issue!
 
 ## License
 
-The MIT License See [LICENSE](https://github.com/tzmfreedom/fui/blob/master/LICENSE) file.
+The MIT License See [LICENSE](https://github.com/tzmfreedom/lui/blob/master/LICENSE) file.

@@ -1,4 +1,4 @@
-NAME := fui
+NAME := lui
 SRCS := $(shell find . -type d -name vendor -prune -o -type f -name "*.go" -print)
 VERSION := 0.1.0
 REVISION := $(shell git rev-parse --short HEAD)
