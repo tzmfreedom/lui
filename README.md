@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.org/tzmfreedom/lui.svg?branch=master)](https://travis-ci.org/tzmfreedom/lui)
+
 # fui
 
-Force.com TerminalUI Application
+Lightning Platform TerminalUI Application
 
 ## Install
 
