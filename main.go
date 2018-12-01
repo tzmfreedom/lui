@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/Songmu/prompter"
 	"github.com/tzmfreedom/go-soapforce"
@@ -28,6 +29,9 @@ func main() {
 	}
 
 	g, err := gocui.NewGui(gocui.OutputNormal)
+	if runtime.GOOS == "windows" {
+		g.ASCII = true
+	}
 	if err != nil {
 		panic(err)
 	}
