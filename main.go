@@ -118,7 +118,7 @@ OPTIONS:
 		panic(err)
 	}
 	if *version {
-		fmt.Printf("%s\n")
+		fmt.Printf("%s\n", Version)
 		os.Exit(0)
 		return nil
 	}
