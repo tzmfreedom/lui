@@ -4,6 +4,8 @@
 
 Lightning Platform TerminalUI Application
 
+![lui](lui.gif)
+
 ## Install
 
 For Linux
