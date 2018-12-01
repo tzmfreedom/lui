@@ -6,15 +6,33 @@ Lightning Platform TerminalUI Application
 
 ## Install
 
-For Golang User
+For Linux
+```bash
+$ curl -sL http://install.freedom-man.com/lui.sh | bash
 ```
-go get github.com/tzmfreedom/lui
+
+For Windows with Command Prompt
+```
+@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile ^
+  -InputFormat None -ExecutionPolicy Bypass ^
+  -Command "iex ((New-Object System.Net.WebClient).DownloadString('http://install.freedom-man.com/lui.ps1'))" ^
+  && SET "PATH=%PATH%;%APPDATA%\lui\bin"
+```
+
+For Windows with PowerShell
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('http://install.freedom-man.com/yasd.ps1'))
+```
+
+For Golang
+```bash
+$ go get github.com/tzmfreedom/lui
 ```
 
 ## Usage
 
 ```
-$ lui
+$ lui -u USERNAME [-e ENDPOINT] [-v] [-h, --help]
 ```
 
 ## Contribute

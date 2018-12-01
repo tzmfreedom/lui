@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"os"
 	"runtime"
 
@@ -13,17 +15,23 @@ var client *soapforce.Client
 var descGlobalResults []*soapforce.DescribeGlobalSObjectResult
 var descSObjectResults = map[string]*soapforce.DescribeSObjectResult{}
 
+var (
+	Version string
+)
+
+type option struct {
+	Username string
+	Password string
+	Endpoint string
+}
+
 func main() {
-	username := os.Getenv("SALESFORCE_USERNAME")
-	if username == "" {
-		username = prompter.Prompt("Enter your user name", "")
-	}
-	password := os.Getenv("SALESFORCE_PASSWORD")
-	if password == "" {
-		password = prompter.Password("Enter your password")
-	}
+	option := parse()
 	client = soapforce.NewClient()
-	result, err := client.Login(username, password)
+	if option.Endpoint != "" {
+		client.LoginUrl = option.Endpoint
+	}
+	result, err := client.Login(option.Username, option.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -80,6 +88,63 @@ func main() {
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		panic(err)
+	}
+}
+
+func parse() *option {
+	flg := flag.NewFlagSet("lui", flag.ExitOnError)
+	username := flg.String("u", "", "username")
+	endpoint := flg.String("e", "", "endpoint")
+	version := flg.Bool("v", false, "version")
+	flg.Usage = func() {
+		fmt.Printf(`NAME:
+   lui - Lightining plaform terminal UI
+
+USAGE:
+   lui [options]
+
+VERSION:
+   %s
+
+OPTIONS:
+   -u  username
+   -e  endpoint (e.g. test.salesforce.com)
+   -v  print the version
+`, Version)
+		os.Exit(0)
+	}
+	err := flg.Parse(os.Args[1:])
+	if err != nil {
+		panic(err)
+	}
+	if *version {
+		fmt.Printf("%s\n")
+		os.Exit(0)
+		return nil
+	}
+
+	if *username == "" && os.Getenv("SALESFORCE_USERNAME") != "" {
+		*username = os.Getenv("SALESFORCE_USERNAME")
+	}
+	if *username == "" {
+		*username = prompter.Prompt("Enter username", "")
+	}
+	if *endpoint == "" && os.Getenv("SALESFORCE_ENDPOINT") != "" {
+		*endpoint = os.Getenv("SALESFORCE_ENDPOINT")
+	}
+	if *endpoint == "" {
+		*endpoint = prompter.Prompt("Enter endpoint (e.g. test.salesforce.com)", "login.salesforce.com")
+	}
+
+	password := os.Getenv("SALESFORCE_PASSWORD")
+	if password == "" {
+		password = prompter.Password("Enter password")
+	}
+
+	return &option{
+		Username: *username,
+		Password: password,
+		Endpoint: *endpoint,
 	}
 }
 

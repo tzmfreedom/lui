@@ -2,7 +2,7 @@ NAME := lui
 SRCS := $(shell find . -type d -name vendor -prune -o -type f -name "*.go" -print)
 VERSION := 0.1.1
 REVISION := $(shell git rev-parse --short HEAD)
-LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\"" 
+LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\""
 DIST_DIRS := find * -type d -exec
 DIST_NO_WINDOWS_DIRS := find * -type d -not -name "window*" -exec
 DIST_WINDOWS_DIRS := find * -type d -name "window*" -exec
