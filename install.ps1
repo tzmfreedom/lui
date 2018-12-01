@@ -1,6 +1,6 @@
 $name = "lui"
 $bin_name = "lui"
-$version = "0.1.1"
+$version = "0.1.2"
 $github_user = "tzmfreedom"
 If ($Env:PROCESSOR_ARCHITECTURE -match "64") {
   $arch = "amd64"
